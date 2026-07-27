@@ -33,7 +33,8 @@ jobs:
           - os: macos-latest
             target: dmg
             ext: .dmg
-          - os: ubuntu-latest
+          # Tauri baseline https://v2.tauri.app/distribute/rpm
+          - os: ubuntu-22.04
             target: appimage
             ext: .AppImage
 
@@ -53,6 +54,14 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: src-tauri -> target
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+          # Key version can be bumped to account for native dependencies of Tauri, such as WebKitGTK.
+          # As they are updated "silently" via `apt` and do not cause underlying cache key change.
+          key: ${{ matrix.target }}-tauri-native-deps-v1
 
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
